@@ -16,10 +16,10 @@ public class Canvas extends JPanel{
     int yInc;
     Life life;
     ArrayList<Square> liveCells = new ArrayList<>();
-    public int getH() {
+    public double getH() {
         return h;
     }
-    public int getW() {
+    public double getW() {
         return w;
     }
 
@@ -29,12 +29,18 @@ public class Canvas extends JPanel{
         this.life = life;
         squares = new Square[numSquares][numSquares];
         this.num = numSquares;
-        xInc = w/num;
-        yInc = h/num;
+        System.out.println("W: " + w + "   H: " + h);
+        System.out.println("Num: " + num);
+        xInc = w/(num);
+        yInc = h/(num);
+        System.out.println("xInc: " + xInc + "  yInc: " + yInc);
         for (int x = 0; x < this.w; x += xInc) {
             for (int y = 0; y < this.h; y += yInc) {
-                //System.out.println("y/yInc: " + y/yInc + "  x/xInc: " + x/xInc);
-                squares[y/yInc][x/xInc] = new Square(x,y,xInc,yInc,false);
+                System.out.println("X: " + x + "    Y: " + y);
+                System.out.println("y/yInc: " + y/yInc + "  x/xInc: " + x/xInc);
+                int xSquare = x/xInc;
+                int ySquare = y/yInc;
+                squares[ySquare][xSquare] = new Square(x,y,xInc,yInc,false);
             }
         }
 
@@ -44,10 +50,6 @@ public class Canvas extends JPanel{
     public ArrayList<Square> getLiveCells()
     {
         return liveCells;
-    }
-    public void bruh()
-    {
-        repaint();
     }
     public void calcNewPositions(Life life)
     {
@@ -97,8 +99,8 @@ public class Canvas extends JPanel{
                 int y = e.getY();
                 xInc = w/num;
                 yInc = h/num;
-                int xSquare = (x/xInc);
-                int ySquare = (y/yInc);
+                int xSquare = (int)(x/xInc);
+                int ySquare = (int)(y/yInc);
                 Square square = squares[ySquare][xSquare];
                 if(!square.isClickedOn()) {
                     square.toggleFilled();
