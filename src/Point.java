@@ -36,7 +36,7 @@ public class Point {
         this.y = y;
     }
     public void setStatus(boolean status) {
-        System.out.println("status of " + this + " is now " + this.status);
+        //System.out.println("status of " + this + " is now " + this.status);
         this.status = status;
     }
     public boolean getStatus()
@@ -57,21 +57,21 @@ public class Point {
     {
         //generate new points to use as for keys in hashmap
         ArrayList<Point> points = new ArrayList<>();
-        if(y-1>=0 && x-1>=0)
+        if((y-1>=0 && x-1>=0) && (y-1<board[0].length && x-1<board.length))
             points.add(board[y-1][x-1]);
-        if(y-1>=0 && x>=0)
+        if((y-1>=0 && x>=0) && (y-1<board[0].length && x<board.length))
             points.add(board[y-1][x]);
-        if(y-1>=0 && x+1>=0)
+        if((y-1>=0 && x+1>=0)&& (y-1<board[0].length && x+1<board.length))
             points.add(board[y-1][x+1]);
-        if(y>=0 && x-1>=0)
+        if((y>=0 && x-1>=0) && (y<board[0].length && x-1<board.length))
             points.add(board[y][x-1]);
-        if(y>=0 && x+1>=0)
+        if((y>=0 && x+1>=0)&& (y<board[0].length && x+1<board.length))
             points.add(board[y][x+1]);
-        if(y+1>=0 && x-1>=0)
+        if((y+1>=0 && x-1>=0)&& (y+1<board[0].length && x-1<board.length))
             points.add(board[y+1][x-1]);
-        if(y+1>=0 && x>=0)
+        if((y+1>=0 && x>=0) && (y+1<board[0].length && x<board.length))
             points.add(board[y+1][x]);
-        if(y+1>=0 && x+1>=0)
+        if((y+1>=0 && x+1>=0)&& (y+1<board[0].length && x+1<board.length))
             points.add(board[y+1][x+1]);
         Point[] result = new Point[points.size()];
         for(int i = 0;i<points.size();i++)

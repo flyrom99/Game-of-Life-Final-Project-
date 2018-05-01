@@ -4,8 +4,7 @@ public class Square {
     int w;
     int h;
     boolean filled;
-
-
+    boolean clickedOn;
 
     public Square(int x, int y, int w, int h, boolean filled)
     {
@@ -15,7 +14,13 @@ public class Square {
         this.h = h;
         this.filled = filled;
     }
+    public boolean isClickedOn() {
+        return clickedOn;
+    }
 
+    public void setClickedOn(boolean repainted) {
+        this.clickedOn = repainted;
+    }
     public int getW() {
         return w;
     }
@@ -53,6 +58,30 @@ public class Square {
 
     public void setFilled(boolean filled) {
         this.filled = filled;
+    }
+
+    public void toggleFilled()
+    {
+        if(filled)
+            this.filled = false;
+        else
+            this.filled = true;
+    }
+    public static void printArr(Square[][] arr)
+    {
+        for(int r = 0;r<arr[0].length;r++)
+        {
+            for(int c = 0;c<arr.length;c++)
+            {
+                System.out.print(arr[r][c].isFilled() + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public String toString()
+    {
+        return "(" + x + ", " + y + ") s: " + filled;
     }
 
 

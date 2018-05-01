@@ -20,6 +20,23 @@ public class Life {
             }
         }
     }
+    public void reset()
+    {
+        for(int r = 0;r<board[0].length;r++)
+        {
+            for(int c = 0;c<board.length;c++)
+            {
+                statArr[r][c] = false;
+                board[r][c].setStatus(false);
+            }
+        }
+        numNeighbors.clear();
+        alive.clear();
+    }
+    public boolean[][] getStatArr()
+    {
+        return this.statArr;
+    }
     public void decreaseCount(Point p)
     {
         if(p.getX()>=0 && p.getY()>=0)
@@ -50,7 +67,10 @@ public class Life {
                 numNeighbors.put(p,current+1);
             }
         }
-
+    public Point getPoint(int x, int y)
+    {
+        return board[y][x];
+    }
     public void animateCell(Point p)
     {
 
@@ -123,6 +143,10 @@ public class Life {
             System.out.println();
         }
     }
+    public Point[][] getBoard()
+    {
+        return board;
+    }
     public void doCycle(int i)
     {
         HashMap<Point,Integer> results = new HashMap<>();
@@ -166,7 +190,7 @@ public class Life {
             {
             }
         }
-        printBoard(10,board);
+        //printBoard(10,board);
         System.out.println();
     }
 
