@@ -11,7 +11,8 @@ public class Canvas extends JPanel{
     Square[][] squares;
     int w;
     int h;
-    static int num;
+    int xNum;
+    int yNum;
     int xInc;
     int yInc;
     Life life;
@@ -23,25 +24,28 @@ public class Canvas extends JPanel{
         return w;
     }
 
-    public Canvas(int w, int h, int numSquares, Life life) {
+    public Canvas(int w, int h, int numXSq, int numYSq, Life life) {
         this.w = w;
         this.h = h;
         this.life = life;
-        squares = new Square[numSquares][numSquares];
-        this.num = numSquares;
-        System.out.println("W: " + w + "   H: " + h);
-        System.out.println("Num: " + num);
-        xInc = w/(num);
-        yInc = h/(num);
-        System.out.println("xInc: " + xInc + "  yInc: " + yInc);
+        squares = new Square[numYSq][numXSq];
+        this.xNum = numXSq;
+        this.yNum = numYSq;
+        xInc = w/(numXSq);
+        yInc = h/(numYSq);
+        int xCounter = 0;
         for (int x = 0; x < this.w; x += xInc) {
+            int yCounter = 0;
             for (int y = 0; y < this.h; y += yInc) {
-                System.out.println("X: " + x + "    Y: " + y);
-                System.out.println("y/yInc: " + y/yInc + "  x/xInc: " + x/xInc);
                 int xSquare = x/xInc;
                 int ySquare = y/yInc;
-                squares[ySquare][xSquare] = new Square(x,y,xInc,yInc,false);
+                //System.out.println("xInc: " + xInc + "    yInc: " + yInc);
+                //System.out.println("xSq: " + xSquare + "    ySq: " + ySquare);
+                //System.out.println("x: " + x + "   y: " + y);
+                squares[yCounter][xCounter] = new Square(x,y,xInc,yInc,false);
+                yCounter++;
             }
+            xCounter++;
         }
 
         this.setSize(w,h);
@@ -97,8 +101,8 @@ public class Canvas extends JPanel{
 
                 int x = e.getX();
                 int y = e.getY();
-                xInc = w/num;
-                yInc = h/num;
+                xInc = w/xNum;
+                yInc = h/yNum;
                 int xSquare = (int)(x/xInc);
                 int ySquare = (int)(y/yInc);
                 Square square = squares[ySquare][xSquare];
@@ -128,8 +132,8 @@ public class Canvas extends JPanel{
 
     public void calcSquareLocations()
     {
-        xInc = w/num;
-        yInc = h/num;
+        xInc = w/xNum;
+        yInc = h/yNum;
         int x = 0;
 
         int y = 0;
@@ -150,21 +154,23 @@ public class Canvas extends JPanel{
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        System.out.println("here");
         g.setColor(Color.black);
-        for (int r = 0; r < squares[0].length; r++) {
-            for (int c = 0; c < squares.length; c++) {
+        for (int r = 0; r < squares.length; r++) {
+            for (int c = 0; c < squares[0].length; c++) {
                 Square s = squares[r][c];
-                if (s.isFilled()) {
-                    {
-                        g.fillRect(s.getX(), s.getY(), s.getW(), s.getH());
-                        life.animateCell(life.getPoint(c,r));
+                    if (s.isFilled()) {
+                        {
+                            //if(life.getBoard()[r][c].isRedrawThis())
+                                g.fillRect(s.getX(), s.getY(), s.getW(), s.getH());
+                            life.animateCell(life.getPoint(c, r));
+                        }
+                    } else {
+                        //if(life.getBoard()[r][c].isRedrawThis())
+                            g.drawRect(s.getX(), s.getY(), s.getW(), s.getH());
+                        life.killCell(life.getPoint(c, r));
                     }
-                } else {
-                    g.drawRect(s.getX(), s.getY(), s.getW(), s.getH());
-                    life.killCell(life.getPoint(c,r));
-                }
-                squares[r][c].setClickedOn(false);
+                    squares[r][c].setClickedOn(false);
+
             }
         }
     }

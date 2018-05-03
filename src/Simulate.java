@@ -1,6 +1,6 @@
 public class Simulate {
     public Point[][] board;
-     Life life = new Life(25);
+     Life life = new Life(25,25);
     public Simulate(int size)
     {
         board = new Point[size][size];
@@ -21,13 +21,15 @@ public class Simulate {
 
     public static void main(String[] args)
     {
-        Simulate sim = new Simulate(10);
-        sim.addStartingPoint(0,2);
-        sim.addStartingPoint(1,2);
-        sim.addStartingPoint(2,2);
-        sim.addStartingPoint(3,1);
-        sim.addStartingPoint(3,3);
-        sim.addStartingPoint(4,2);
-        sim.play(5);
+        int[][] test = {{1,2,3},{4,5,6},{7,8,9}};
+        for(int c = 0;c<test.length;c++)
+        {
+            for(int r = 0;r<test[0].length;r++)
+            {
+                System.out.print(test[c][r] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println(test[1][2]);
     }
 }

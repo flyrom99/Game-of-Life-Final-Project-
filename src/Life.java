@@ -7,19 +7,22 @@ public class Life {
     HashSet<Point> alive = new HashSet<>();
     Point[][] board;
     boolean[][] statArr;
-    public Life (int count)
+
+    public Life (int x, int y)
     {
-        board = new Point[count][count];
-        statArr = new boolean[count][count];
-        for(int r = 0;r<board[0].length;r++)
+        board = new Point[y][x];
+        statArr = new boolean[y][x];
+        for(int r = 0;r<board.length;r++)
         {
-            for(int c = 0;c<board.length;c++)
+            for(int c = 0;c<board[0].length;c++)
             {
+                //System.out.println(statArr[r][c]);
                 board[r][c] = new Point(c,r);
                 statArr[r][c] = false;
             }
         }
     }
+
     public void reset()
     {
         for(int r = 0;r<board[0].length;r++)
@@ -37,36 +40,7 @@ public class Life {
     {
         return this.statArr;
     }
-    public void decreaseCount(Point p)
-    {
-        if(p.getX()>=0 && p.getY()>=0)
-        {
-            int current = numNeighbors.get(p);
-            if(alive.contains(p))
-                p.setStatus(true);
-            if(current>0)
-            {
-                numNeighbors.remove(p);
-                numNeighbors.put(p,current-1);
 
-            }
-        }
-    }
-
-    public void increaseCount(Point p) {
-
-        if(p.getX()>=0 && p.getY()>=0)
-        {
-            int current = 0;
-            if(alive.contains(p))
-                p.setStatus(true);
-            if(numNeighbors.containsKey(p)) {
-                current = numNeighbors.get(p);
-                numNeighbors.remove(p);
-            }
-                numNeighbors.put(p,current+1);
-            }
-        }
     public Point getPoint(int x, int y)
     {
         return board[y][x];
@@ -157,22 +131,26 @@ public class Life {
             int neighbors = p.getNumAliveNeighbors(statArr,p.getNeighbors(board));
             if(statArr[p.getY()][p.getX()] && alive.contains(p)) {
                 if (neighbors == 3 || neighbors ==2) {
-                    results.put(p,0);
+                    results.put(p,0); //alive cell stays alive
+                    p.setRedrawThis(false);
                 }
                 else
                 {
                     results.put(p,-1);
+                    p.setRedrawThis(true);
                 }
             }
-            else
+            else //is dead rn
             {
                 if(neighbors == 3)
                 {
                     results.put(p,1);
+                    p.setRedrawThis(true);
                 }
                 else
                 {
                     results.put(p,0);
+                    p.setRedrawThis(false);
                 }
             }
         }

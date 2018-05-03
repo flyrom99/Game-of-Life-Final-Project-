@@ -1,4 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * Created by tmoyer18 on 4/26/18.
@@ -12,12 +15,18 @@ public class Test {
             f[i].setStatus(true);
         }
     }
-    public static void main(String[] args)
-    {
-        Point[] f = {new Point(3,4), new Point(4,5), new Point(5,6)};
-        System.out.println(Arrays.toString(f));
-        test(f);
-        System.out.println(Arrays.toString(f));
+    public static void main(String[] args) {
+        Scanner in = null;
+        try
+        {
+            in = new Scanner(new File("queenbeeshuttle.rle"));
+        }
+        catch (FileNotFoundException ex)
+        {
+
+        }
+        while(in.hasNextLine())
+            System.out.println(in.nextLine());
     }
 
 }

@@ -7,6 +7,14 @@ public class Point {
     private int y;
     private boolean status;
     private int numNeighbors;
+    boolean redrawThis = true;
+    public boolean isRedrawThis() {
+        return redrawThis;
+    }
+
+    public void setRedrawThis(boolean redrawThis) {
+        this.redrawThis = redrawThis;
+    }
     public Point(int x, int y)
     {
         this.x = x;
@@ -57,21 +65,21 @@ public class Point {
     {
         //generate new points to use as for keys in hashmap
         ArrayList<Point> points = new ArrayList<>();
-        if((y-1>=0 && x-1>=0) && (y-1<board[0].length && x-1<board.length))
+        if((y-1>=0 && x-1>=0) && (y-1<board.length && x-1<board[0].length))
             points.add(board[y-1][x-1]);
-        if((y-1>=0 && x>=0) && (y-1<board[0].length && x<board.length))
+        if((y-1>=0 && x>=0) && (y-1<board.length && x<board[0].length))
             points.add(board[y-1][x]);
-        if((y-1>=0 && x+1>=0)&& (y-1<board[0].length && x+1<board.length))
+        if((y-1>=0 && x+1>=0)&& (y-1<board.length && x+1<board[0].length))
             points.add(board[y-1][x+1]);
-        if((y>=0 && x-1>=0) && (y<board[0].length && x-1<board.length))
+        if((y>=0 && x-1>=0) && (y<board.length && x-1<board[0].length))
             points.add(board[y][x-1]);
-        if((y>=0 && x+1>=0)&& (y<board[0].length && x+1<board.length))
+        if((y>=0 && x+1>=0)&& (y<board.length && x+1<board[0].length))
             points.add(board[y][x+1]);
-        if((y+1>=0 && x-1>=0)&& (y+1<board[0].length && x-1<board.length))
+        if((y+1>=0 && x-1>=0)&& (y+1<board.length && x-1<board[0].length))
             points.add(board[y+1][x-1]);
-        if((y+1>=0 && x>=0) && (y+1<board[0].length && x<board.length))
+        if((y+1>=0 && x>=0) && (y+1<board.length && x<board[0].length))
             points.add(board[y+1][x]);
-        if((y+1>=0 && x+1>=0)&& (y+1<board[0].length && x+1<board.length))
+        if((y+1>=0 && x+1>=0)&& (y+1<board.length && x+1<board[0].length))
             points.add(board[y+1][x+1]);
         Point[] result = new Point[points.size()];
         for(int i = 0;i<points.size();i++)
