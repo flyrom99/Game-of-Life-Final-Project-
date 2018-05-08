@@ -1,16 +1,11 @@
 public class Simulate {
-    public Point[][] board;
+    public Square[][] board;
      Life life = new Life(25,25);
     public Simulate(int size)
     {
-        board = new Point[size][size];
+        board = new Square[size][size];
     }
-    public  void addStartingPoint(int x, int y)
-    {
-        Point p = new Point(x,y);
-        System.out.println("adding " + p);
-        life.animateCell(p);
-    }
+
     public  void play(int numCycles)
     {
         for(int i = 0;i<numCycles;i++)

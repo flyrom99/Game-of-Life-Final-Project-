@@ -1,26 +1,30 @@
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 
 public class Life {
-    HashMap<Point,Integer> numNeighbors = new HashMap<>();
-    HashSet<Point> alive = new HashSet<>();
-    Point[][] board;
+    HashMap<Square,Integer> numNeighbors = new HashMap<>();
+    HashSet<Square> alive = new HashSet<>();
+    Square[][] board;
     boolean[][] statArr;
 
     public Life (int x, int y)
     {
-        board = new Point[y][x];
+        board = new Square[y][x];
         statArr = new boolean[y][x];
         for(int r = 0;r<board.length;r++)
         {
             for(int c = 0;c<board[0].length;c++)
             {
-                //System.out.println(statArr[r][c]);
-                board[r][c] = new Point(c,r);
+                board[r][c] = new Square(c,r,0,0,50,50,false);
                 statArr[r][c] = false;
             }
         }
+    }
+
+    public Life(Square[][] board)
+    {
+        this.board = board;
+        statArr = new boolean[board.length][board[0].length];
+        //System.out.println("bW: " + board[0].length + " bH " + board.length + "  sW: " + statArr[0].length + " sH: " + statArr.length);
     }
 
     public void reset()
@@ -30,7 +34,7 @@ public class Life {
             for(int c = 0;c<board.length;c++)
             {
                 statArr[r][c] = false;
-                board[r][c].setStatus(false);
+                board[r][c].setFilled(false);
             }
         }
         numNeighbors.clear();
@@ -41,16 +45,16 @@ public class Life {
         return this.statArr;
     }
 
-    public Point getPoint(int x, int y)
+    public Square getPoint(int x, int y)
     {
         return board[y][x];
     }
-    public void animateCell(Point p)
+    public void animateCell(Square p)
     {
 
-        statArr[p.getY()][p.getX()] = true;
+        statArr[p.getArrayY()][p.getArrayX()] = true;
         alive.add(p);
-        for(Point n: p.getNeighbors(board))
+        for(Square n: p.getNeighbors(board))
         {
             n.setNumNeighbors(n.getNumNeighbors()+1);
             numNeighbors.put(n,n.getNumNeighbors());
@@ -60,11 +64,11 @@ public class Life {
     }
 
 
-    public void killCell(Point p)
+    public void killCell(Square p)
     {
-        statArr[p.getY()][p.getX()] = false;
+        statArr[p.getArrayY()][p.getArrayX()] = false;
        alive.remove(p);
-       for(Point n: p.getNeighbors(board))
+       for(Square n: p.getNeighbors(board))
        {
            if(n.getNumNeighbors()-1>=0)
            {
@@ -83,11 +87,11 @@ public class Life {
                 arr[r][c] = '0';
             }
         }
-        Iterator<Point> iter = alive.iterator();
+        Iterator<Square> iter = alive.iterator();
         while(iter.hasNext())
         {
-            Point current = iter.next();
-            arr[current.getY()][current.getX()] = '1';
+            Square current = iter.next();
+            arr[current.getArrayY()][current.getArrayX()] = '1';
         }
 
         for(int r = 0;r<arr[0].length;r++)
@@ -117,27 +121,28 @@ public class Life {
             System.out.println();
         }
     }
-    public Point[][] getBoard()
+    public Square[][] getBoard()
     {
         return board;
     }
-    public void doCycle(int i)
+    public Set<Square> doCycle(int i)
     {
-        HashMap<Point,Integer> results = new HashMap<>();
-        //printStatArr(statArr);
+        //returns the Squares that changed
+        double start = System.currentTimeMillis();
+        HashMap<Square,Integer> results = new HashMap<>();
+        Set<Square> changed = new HashSet<>();
         //-1 == kill  1 == live
-        for(Point p: numNeighbors.keySet())
+        for(Square p: numNeighbors.keySet())
         {
             int neighbors = p.getNumAliveNeighbors(statArr,p.getNeighbors(board));
-            if(statArr[p.getY()][p.getX()] && alive.contains(p)) {
+            if(statArr[p.getArrayY()][p.getArrayX()] && alive.contains(p)) {
                 if (neighbors == 3 || neighbors ==2) {
                     results.put(p,0); //alive cell stays alive
-                    p.setRedrawThis(false);
                 }
                 else
                 {
                     results.put(p,-1);
-                    p.setRedrawThis(true);
+                    changed.add(p);
                 }
             }
             else //is dead rn
@@ -145,16 +150,15 @@ public class Life {
                 if(neighbors == 3)
                 {
                     results.put(p,1);
-                    p.setRedrawThis(true);
+                    changed.add(p);
                 }
                 else
                 {
                     results.put(p,0);
-                    p.setRedrawThis(false);
                 }
             }
         }
-        for(Point p:results.keySet())
+        for(Square p:results.keySet())
         {
             if(results.get(p) == 1)
             {
@@ -168,8 +172,8 @@ public class Life {
             {
             }
         }
-        //printBoard(10,board);
-        System.out.println();
+        System.out.println("cycle time: " + (System.currentTimeMillis() - start));
+        return changed;
     }
 
 

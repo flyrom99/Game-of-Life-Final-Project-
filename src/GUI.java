@@ -1,134 +1,60 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class GUI {
+    static JFrame frame;
     static Timer timer;
     static boolean timerActive = false;
-    Canvas canvas;
-    Life l;
-    int numXSq;
-    int numYSq;
-    public GUI(int numXSq,int numYSq, int w, int h) {
+    static Canvas canvas;
+    static Life l;
+    static int numXSq;
+    static int numYSq;
+    public GUI(int numXSq,int numYSq, int w, int h, int fps) {
         this.numXSq = numXSq;
         this.numYSq = numYSq;
         JFrame frame = new JFrame("Game of Life");
+        this.frame = frame;
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
         frame.setSize(w + 50, h + 50);
-        Life life = new Life(numXSq,numYSq);
-        Canvas c = new Canvas(w, h, numXSq,numYSq,life);
+        Canvas c = new Canvas(w, h, numXSq,numYSq);
         canvas = c;
-        l = life;
-        JMenuBar bar = new JMenuBar();
-        JMenu menu = new JMenu("Menu");
-        JMenuItem reset = new JMenuItem("Reset");
-        JMenuItem start = new JMenuItem("Start");
-        JMenuItem step = new JMenuItem("Single Step");
-        JMenuItem save = new JMenuItem("Save");
-        save.addMouseListener(new MouseListener() {
+        l =c.getLife();
+
+        c.setFocusable(true);
+        c.addKeyListener(new KeyListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void keyTyped(KeyEvent e) {
 
             }
 
             @Override
-            public void mousePressed(MouseEvent e) {
-                saveFile("newFile");
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_UP)
+                {
+                    System.out.println("Ye");
+                }
             }
 
             @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
+            public void keyReleased(KeyEvent e) {
 
             }
         });
-        step.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                c.calcNewPositions(life);
-                c.repaint();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
-        });
-        reset.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                life.reset();
-                c.reset();
-                timer.stop();
-                c.repaint();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
-        });
-        menu.add(reset);
-        menu.add(step);
-        menu.add(save);
-        bar.add(menu);
         c.setPreferredSize(frame.getSize());
         c.setBackground(Color.WHITE);
         c.setVisible(true);
         c.addListeners(c);
         frame.setResizable(false);
         frame.setVisible(true);
-        timer = new Timer(50, new ActionListener() {
+        timer = new Timer(1000/fps, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                for (int i = 0; i < 1; i++) {
-                    c.calcNewPositions(life);
-                }
-
+                c.calcNewPositions(c.getLife());
                 c.repaint();
             }
         });
@@ -148,6 +74,7 @@ public class GUI {
                     timer.start();
                     timerActive = true;
                 }
+                c.setFocusable(true);
 
             }
 
@@ -166,39 +93,8 @@ public class GUI {
 
             }
         });
-        start.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
 
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (timerActive) {
-                    timer.stop();
-                    timerActive = false;
-                } else {
-                    timer.start();
-                    timerActive = true;
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
-        });
-        menu.add(start);
+        JMenuBar bar = buildJMenuBar(timer,timerActive);
         frame.setBounds(40, 80, w + 1, h + 1);
         frame.add(c, BorderLayout.CENTER);
         frame.add(b, BorderLayout.PAGE_END);
@@ -224,7 +120,7 @@ public class GUI {
         }
         canvas.repaint();
     }
-    public void parseRLEFile(File f, int offset)
+    public static void parseRLEFile(File f, int offset)
     {
         //fix this shit
         canvas.reset();
@@ -257,48 +153,80 @@ public class GUI {
         int currentRow = 0;
         System.out.println("current line: " + currentLine);
         for(int i = 0;i<currentLine.length();i++) {
-            if (currentLine.charAt(i) == '!')
+            char currentChar = currentLine.charAt(i);
+            System.out.println("currentChar: " + currentChar + " previousChar: " + previousChar);
+            if (currentChar == '!')
                 return;
             else {
-                if (currentLine.charAt(i) == '$') {
+                System.out.println("previousChar is digit: " + Character.isDigit(previousChar));
+                System.out.println("currentChar is $ or alpha: " + (Character.isAlphabetic(currentChar) || currentChar=='$'));
+                if (currentChar == '$') {
+
+                    if(Character.isDigit(previousChar))
+                        for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
+                            currentRow++;
+                            for (int newCol = 0; newCol < x; newCol++) {
+                                System.out.println("doing multiple new lines");
+                                canvas.getSquares()[currentRow + offset][newCol + offset].setFilled(false);
+                                canvas.getLife().getStatArr()[currentRow + offset][newCol + offset] = false;
+                                canvas.getChanged().add(canvas.getSquares()[currentRow + offset][newCol + offset]);
+                                canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow + offset][newCol + offset]);
+                            }
+
+                        }
+                    else
+                    {
+                        currentRow++;
+                    }
                     currentCol = 0;
-                    currentRow++;
                 }
-                else if(Character.isDigit(currentLine.charAt(i)))
+                if(Character.isDigit(currentChar))
                 {
                     if(Character.isDigit(previousChar))
                     {
-                        recentNum += currentLine.charAt(i);
+                        recentNum += currentChar;
                     }
                     else
-                        recentNum = "" + currentLine.charAt(i);
+                        recentNum = "" + currentChar;
                 }
-                else if (Character.isDigit(previousChar) && Character.isAlphabetic(currentLine.charAt(i))) {
+                else if (Character.isDigit(previousChar) && Character.isAlphabetic(currentChar)) {
                     boolean status = false;
-                    if (currentLine.charAt(i) == 'o')
+                    if (currentChar == 'o')
                         status = true;
                     for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
                         canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(status);
+                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = status;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        System.out.println("updating " + canvas.getSquares()[currentRow+offset][currentCol+offset] + " " + Integer.parseInt(recentNum) + " times when current char is " + currentChar);
                         currentCol++;
-
                     }
-                } else if ((Character.isAlphabetic(previousChar) || previousChar == '$') && Character.isAlphabetic(currentLine.charAt(i))) {
-                    if (currentLine.charAt(i) == 'o') {
+                } else if (((Character.isAlphabetic(previousChar) || previousChar == '$') && Character.isAlphabetic(currentChar)) || previousChar == ' ') {
+                    if (currentChar == 'o') {
                         canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(true);
+                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = true;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+
                     } else {
                         canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(false);
+                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = false;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
                     }
+                    System.out.println("updating " + canvas.getSquares()[currentRow+offset][currentCol+offset] + " when current char is " + currentChar);
+
                     currentCol++;
                 } else {
-                    System.out.println("you did something wrong when current char is " + currentLine.charAt(i) + " previousChar: " + previousChar);
+                    System.out.println("you did something wrong when current char is " + currentChar + " previousChar: " + previousChar);
                 }
             }
-            previousChar = currentLine.charAt(i);
+            previousChar = currentChar;
         }
 
     }
 
-    public void saveFile(String name)
+    public static void saveFile(String name)
     {
         PrintWriter writer = null;
         File file = new File(name + ".rle");
@@ -318,6 +246,7 @@ public class GUI {
             char runningChar = ' ';
             char currentChar = ' ';
             String appendThis = "";
+            int lineLength = 0;
             for(int c = 0;c<squares[0].length;c++)
             {
                 System.out.println("running count: " + runningCount);
@@ -333,29 +262,235 @@ public class GUI {
                     runningCount++;
                 else
                 {
-                    System.out.println("else");
+                    if(lineLength>=70)
+                        writer.print("\n");
+                    else
+                    {
                     if(runningCount == 1)
                         writer.print(runningChar);
                     else {
-                        System.out.println("gets here");
                         writer.print(runningCount + runningChar);
+
+                    }
+                    lineLength++;
                     }
                     runningChar = currentChar;
                     runningCount = 1;
                 }
             }
-            writer.print("$" + "\n");
+            writer.print("$");
         }
         writer.print("!");
         writer.close();
 
 
     }
+    public static JMenuBar buildJMenuBar(Timer timer, boolean timerActive)
+    {
+        final boolean isActive = timerActive;
+        JMenuBar bar = new JMenuBar();
+        JMenu menu = new JMenu("Menu");
+        JMenuItem open = new JMenuItem("Open");
+        JMenuItem reset = new JMenuItem("Reset");
+        JMenuItem start = new JMenuItem("Start");
+        JMenuItem stop = new JMenuItem("Stop");
+        JMenuItem step = new JMenuItem("Single Step");
+        JMenuItem save = new JMenuItem("Save");
+       open.addMouseListener(new MouseListener() {
+           @Override
+           public void mouseClicked(MouseEvent e) {
 
+           }
+
+           @Override
+           public void mousePressed(MouseEvent e) {
+                JFileChooser fileChooser = new JFileChooser(new File("/Users/tmoyer18/Dropbox/Data structures/Game of Life/Patterns"));
+                int result = fileChooser.showOpenDialog(frame);
+                if(result == JFileChooser.APPROVE_OPTION)
+                {
+                    File selected = fileChooser.getSelectedFile();
+                    l.reset();
+                    canvas.reset();
+                    timer.stop();
+                    canvas.repaint();
+                    canvas.setFocusable(true);
+                    parseRLEFile(selected,0);
+                }
+           }
+
+           @Override
+           public void mouseReleased(MouseEvent e) {
+
+           }
+
+           @Override
+           public void mouseEntered(MouseEvent e) {
+
+           }
+
+           @Override
+           public void mouseExited(MouseEvent e) {
+
+           }
+       });
+        save.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                saveFile("newFile");
+                canvas.setFocusable(true);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+        step.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                canvas.calcNewPositions(l);
+                canvas.repaint();
+                canvas.setFocusable(true);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+        reset.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                l.reset();
+                canvas.reset();
+                timer.stop();
+                canvas.repaint();
+                canvas.setFocusable(true);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+        stop.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                timer.stop();
+                setTimerActive(false);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+        start.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+                    timer.start();
+                    setTimerActive(false);
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+        menu.add(open);
+        menu.add(reset);
+        menu.add(save);
+        menu.add(step);
+        menu.add(start);
+        menu.add(stop);
+        bar.add(menu);
+        return bar;
+    }
+    public static void setTimerActive(boolean x)
+    {
+        timerActive = x;
+    }
     public static void main(String[] args) {
-        GUI gui = new GUI(120   ,120,1200,1200);
-        gui.parseRLEFile(new File("frothingpuffer.rle"),50);
-        //TODO: fix parser and make it so life array is very large and canvas array only shows portion of that array
+        GUI gui = new GUI(600   ,600,1200,1200,60);
+        gui.parseRLEFile(new File("unique-high-period.rle"),100);
+        //TODO:implement sparse matrix
     }
 
 }
