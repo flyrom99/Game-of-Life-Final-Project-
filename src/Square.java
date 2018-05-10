@@ -1,4 +1,6 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Square {
     int x;
@@ -10,8 +12,10 @@ public class Square {
     boolean filled;
     boolean clickedOn;
     int numNeighbors;
-
-    public Square(int x, int y,int aX, int aY, int w, int h, boolean filled)
+    boolean calculatedNeighbors;
+    Square[][] board;
+    ArrayList<Square> neighbors = new ArrayList<>();
+    public Square(int x, int y,int aX, int aY, int w, int h, boolean filled,Square[][] board)
     {
         this.x = x;
         this.arrayX = aX;
@@ -21,6 +25,8 @@ public class Square {
         this.h = h;
         this.filled = filled;
         this.clickedOn = false;
+        this.calculatedNeighbors = false;
+        this.board = board;
     }
     public int getArrayX() {
         return arrayX;
@@ -90,43 +96,59 @@ public class Square {
         else
             this.filled = true;
     }
-    public Square[] getNeighbors(Square[][] board)
+    public ArrayList<Square> getNeighbors(Square[][] board)
     {
         ArrayList<Square> points = new ArrayList<>();
-        if((arrayY-1>=0 && arrayX-1>=0) && (arrayY-1<board.length && arrayX-1<board[0].length))
-            points.add(board[arrayY-1][arrayX-1]);
-        if((arrayY-1>=0 && arrayX>=0) && (arrayY-1<board.length && arrayX<board[0].length))
-            points.add(board[arrayY-1][arrayX]);
-        if((arrayY-1>=0 && arrayX+1>=0)&& (arrayY-1<board.length && arrayX+1<board[0].length))
-            points.add(board[arrayY-1][arrayX+1]);
-        if((arrayY>=0 && arrayX-1>=0) && (arrayY<board.length && arrayX-1<board[0].length))
-            points.add(board[arrayY][arrayX-1]);
-        if((arrayY>=0 && arrayX+1>=0)&& (arrayY<board.length && arrayX+1<board[0].length))
-            points.add(board[arrayY][arrayX+1]);
-        if((arrayY+1>=0 && arrayX-1>=0)&& (arrayY+1<board.length && arrayX-1<board[0].length))
-            points.add(board[arrayY+1][arrayX-1]);
-        if((arrayY+1>=0 && arrayX>=0) && (arrayY+1<board.length && arrayX<board[0].length))
-            points.add(board[arrayY+1][arrayX]);
-        if((arrayY+1>=0 && arrayX+1>=0)&& (arrayY+1<board.length && arrayX+1<board[0].length))
-            points.add(board[arrayY+1][arrayX+1]);
-        Square[] result = new Square[points.size()];
-        for(int i = 0;i<points.size();i++)
-        {
-            result[i] = points.get(i);
+        if(!calculatedNeighbors) {
+            if ((arrayY - 1 >= 0 && arrayX - 1 >= 0) && (arrayY - 1 < board.length && arrayX - 1 < board[0].length))
+                neighbors.add(board[arrayY - 1][arrayX - 1]);
+            else
+                neighbors.add(new Square(x - w, y - h, arrayX - 1, arrayY - 1, w, h, false,board));
+            if ((arrayY - 1 >= 0 && arrayX >= 0) && (arrayY - 1 < board.length && arrayX < board[0].length))
+                neighbors.add(board[arrayY - 1][arrayX]);
+            else
+                neighbors.add(new Square(x, y - h, arrayX, arrayY - 1, w, h, false,board));
+            if ((arrayY - 1 >= 0 && arrayX + 1 >= 0) && (arrayY - 1 < board.length && arrayX + 1 < board[0].length))
+                neighbors.add(board[arrayY - 1][arrayX + 1]);
+            else
+                neighbors.add(new Square(x + w, y - h, arrayX + 1, arrayY - 1, w, h, false,board));
+            if ((arrayY >= 0 && arrayX - 1 >= 0) && (arrayY < board.length && arrayX - 1 < board[0].length))
+                neighbors.add(board[arrayY][arrayX - 1]);
+            else
+                neighbors.add(new Square(x - w, y, arrayX - 1, arrayY, w, h, false,board));
+            if ((arrayY >= 0 && arrayX + 1 >= 0) && (arrayY < board.length && arrayX + 1 < board[0].length))
+                neighbors.add(board[arrayY][arrayX + 1]);
+            else
+                neighbors.add(new Square(x + w, y, arrayX + 1, arrayY, w, h, false,board));
+            if ((arrayY + 1 >= 0 && arrayX - 1 >= 0) && (arrayY + 1 < board.length && arrayX - 1 < board[0].length))
+                neighbors.add(board[arrayY + 1][arrayX - 1]);
+            else
+                neighbors.add(new Square(x - w, y + h, arrayX - 1, arrayY + 1, w, h, false,board));
+            if ((arrayY + 1 >= 0 && arrayX >= 0) && (arrayY + 1 < board.length && arrayX < board[0].length))
+                neighbors.add(board[arrayY + 1][arrayX]);
+            else
+                neighbors.add(new Square(x, y + h, arrayX, arrayY + 1, w, h, false,board));
+            if ((arrayY + 1 >= 0 && arrayX + 1 >= 0) && (arrayY + 1 < board.length && arrayX + 1 < board[0].length))
+                neighbors.add(board[arrayY + 1][arrayX + 1]);
+            else
+                neighbors.add(new Square(x + w, y + h, arrayX + 1, arrayY + 1, w, h, false,board));
+            calculatedNeighbors = true;
         }
-        return result;
+        return neighbors;
     }
 
-    public int getNumAliveNeighbors(boolean[][] stat, Square[] neighbors)
+    public int getNumAliveNeighbors(HashSet<Square> alive)
     {
-        ArrayList<Square> result = new ArrayList<>();
+        int sum = 0;
+        if(!calculatedNeighbors)
+            getNeighbors(board);
         for(Square p : neighbors)
         {
             //System.out.println("pX: " + p.getArrayX() + " pY: " + p.getArrayY() + " gX: " + p.getX() + " gY: " + p.getY());
-            if(stat[p.getArrayY()][p.getArrayX()])
-                result.add(p);
+            if(alive.contains(p))
+                sum++;
         }
-        return result.size();
+        return sum;
     }
     public void setNumNeighbors(int i)
     {
@@ -134,6 +156,8 @@ public class Square {
     }
     public int getNumNeighbors()
     {
+        if(!calculatedNeighbors)
+            neighbors = getNeighbors(board);
         return this.numNeighbors;
     }
 

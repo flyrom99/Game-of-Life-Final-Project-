@@ -5,7 +5,8 @@ public class Life {
     HashSet<Square> alive = new HashSet<>();
     Square[][] board;
     boolean[][] statArr;
-
+    int xTranspose = 0;
+    int yTranspose = 0;
     public Life (int x, int y)
     {
         board = new Square[y][x];
@@ -14,7 +15,7 @@ public class Life {
         {
             for(int c = 0;c<board[0].length;c++)
             {
-                board[r][c] = new Square(c,r,0,0,50,50,false);
+                board[r][c] = new Square(c,r,0,0,50,50,false,board);
                 statArr[r][c] = false;
             }
         }
@@ -25,6 +26,11 @@ public class Life {
         this.board = board;
         statArr = new boolean[board.length][board[0].length];
         //System.out.println("bW: " + board[0].length + " bH " + board.length + "  sW: " + statArr[0].length + " sH: " + statArr.length);
+    }
+
+    public void repositionArrays()
+    {
+
     }
 
     public void reset()
@@ -56,26 +62,34 @@ public class Life {
         alive.add(p);
         for(Square n: p.getNeighbors(board))
         {
-            n.setNumNeighbors(n.getNumNeighbors()+1);
-            numNeighbors.put(n,n.getNumNeighbors());
+            if(numNeighbors.keySet().contains(n))
+                numNeighbors.remove(n);
+            numNeighbors.put(n,n.getNumAliveNeighbors(alive));
         }
-        p.setNumNeighbors(p.getNumAliveNeighbors(statArr,p.getNeighbors(board)));
-        numNeighbors.put(p,p.getNumNeighbors());
+        if(numNeighbors.keySet().contains(p))
+            numNeighbors.remove(p);
+        numNeighbors.put(p,p.getNumAliveNeighbors(alive));
     }
 
-
+    public HashSet<Square> getAlive()
+    {
+        return alive;
+    }
     public void killCell(Square p)
     {
         statArr[p.getArrayY()][p.getArrayX()] = false;
        alive.remove(p);
+       if(numNeighbors.containsKey(p))
+           if(p.getNumAliveNeighbors(alive) ==0)
+               numNeighbors.remove(p);
        for(Square n: p.getNeighbors(board))
        {
-           if(n.getNumNeighbors()-1>=0)
-           {
-               n.setNumNeighbors(n.getNumNeighbors()-1);
-           }
+           numNeighbors.remove(n);
+           if(n.getNumAliveNeighbors(alive) != 0)
+               numNeighbors.put(n,n.getNumAliveNeighbors(alive));
        }
-        p.setNumNeighbors(p.getNumAliveNeighbors(statArr,p.getNeighbors(board)));
+
+        p.setNumNeighbors(p.getNumAliveNeighbors(alive));
     }
     public void printBoard(int size,Object[][] board)
     {
@@ -132,37 +146,38 @@ public class Life {
         HashMap<Square,Integer> results = new HashMap<>();
         Set<Square> changed = new HashSet<>();
         //-1 == kill  1 == live
-        for(Square p: numNeighbors.keySet())
-        {
-            int neighbors = p.getNumAliveNeighbors(statArr,p.getNeighbors(board));
-            if(statArr[p.getArrayY()][p.getArrayX()] && alive.contains(p)) {
-                if (neighbors == 3 || neighbors ==2) {
-                    results.put(p,0); //alive cell stays alive
-                }
-                else
+        for(Square p: numNeighbors.keySet()) {
+            int neighbors = p.getNumAliveNeighbors(alive);
+            if (p.getArrayX() >= 0 && p.getArrayY() >= 0 && p.getArrayX() < board[0].length && p.getArrayY() < board.length) {
+                if (statArr[p.getArrayY()][p.getArrayX()] && alive.contains(p)) {
+                    if (neighbors == 3 || neighbors == 2) {
+                        results.put(p, 0); //alive cell stays alive
+                        System.out.println("keeping " + p + " alive");
+                    } else {
+                        results.put(p, -1);
+                        changed.add(p);
+                    }
+                } else //is dead rn
                 {
-                    results.put(p,-1);
-                    changed.add(p);
-                }
-            }
-            else //is dead rn
-            {
-                if(neighbors == 3)
-                {
-                    results.put(p,1);
-                    changed.add(p);
-                }
-                else
-                {
-                    results.put(p,0);
+                    if (neighbors == 3) {
+                        results.put(p, 1);
+                        changed.add(p);
+                    } else {
+                        results.put(p, 0);
+                    }
                 }
             }
         }
         for(Square p:results.keySet())
         {
+            if(p.getNumAliveNeighbors(alive) == 0)
+            {
+                numNeighbors.remove(p);
+            }
             if(results.get(p) == 1)
             {
                 animateCell(p);
+                System.out.println("animating " + p);
             }
             else if(results.get(p) == -1)
             {
@@ -173,6 +188,9 @@ public class Life {
             }
         }
         System.out.println("cycle time: " + (System.currentTimeMillis() - start));
+        System.out.println(numNeighbors);
+        System.out.println("alive: " + alive);
+        System.out.println(board[2][2].getNumAliveNeighbors(alive));
         return changed;
     }
 

@@ -120,7 +120,7 @@ public class GUI {
         }
         canvas.repaint();
     }
-    public static void parseRLEFile(File f, int offset)
+    public static void parseRLEFile(File f)
     {
         //fix this shit
         canvas.reset();
@@ -144,6 +144,9 @@ public class GUI {
         String[][] splitAroundEq = {splitAroundComma[0].split(" = "),splitAroundComma[1].split(" = "),splitAroundComma[2].split(" = ")};
         int x = Integer.parseInt(splitAroundEq[0][1]);
         int y = Integer.parseInt(splitAroundEq[1][1]);
+        int[] offsets = calcOffSet(x,y);
+        int xOffSet = offsets[0];
+        int yOffSet = offsets[1];
         currentLine = input.nextLine(); //this is where the pattern starts
         while(input.hasNextLine())
             currentLine+=input.nextLine();
@@ -151,26 +154,21 @@ public class GUI {
         String recentNum = "";
         int currentCol = 0;
         int currentRow = 0;
-        System.out.println("current line: " + currentLine);
         for(int i = 0;i<currentLine.length();i++) {
             char currentChar = currentLine.charAt(i);
-            System.out.println("currentChar: " + currentChar + " previousChar: " + previousChar);
             if (currentChar == '!')
                 return;
             else {
-                System.out.println("previousChar is digit: " + Character.isDigit(previousChar));
-                System.out.println("currentChar is $ or alpha: " + (Character.isAlphabetic(currentChar) || currentChar=='$'));
                 if (currentChar == '$') {
 
                     if(Character.isDigit(previousChar))
                         for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
                             currentRow++;
                             for (int newCol = 0; newCol < x; newCol++) {
-                                System.out.println("doing multiple new lines");
-                                canvas.getSquares()[currentRow + offset][newCol + offset].setFilled(false);
-                                canvas.getLife().getStatArr()[currentRow + offset][newCol + offset] = false;
-                                canvas.getChanged().add(canvas.getSquares()[currentRow + offset][newCol + offset]);
-                                canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow + offset][newCol + offset]);
+                                canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet].setFilled(false);
+                                canvas.getLife().getStatArr()[currentRow + yOffSet][newCol + xOffSet] = false;
+                                canvas.getChanged().add(canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet]);
+                                canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet]);
                             }
 
                         }
@@ -194,27 +192,25 @@ public class GUI {
                     if (currentChar == 'o')
                         status = true;
                     for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
-                        canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(status);
-                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = status;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
-                        System.out.println("updating " + canvas.getSquares()[currentRow+offset][currentCol+offset] + " " + Integer.parseInt(recentNum) + " times when current char is " + currentChar);
+                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(status);
+                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = status;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
                         currentCol++;
                     }
                 } else if (((Character.isAlphabetic(previousChar) || previousChar == '$') && Character.isAlphabetic(currentChar)) || previousChar == ' ') {
                     if (currentChar == 'o') {
-                        canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(true);
-                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = true;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(true);
+                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = true;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
 
                     } else {
-                        canvas.getSquares()[currentRow+offset][currentCol+offset].setFilled(false);
-                        canvas.getLife().getStatArr()[currentRow+offset][currentCol+offset] = false;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+offset][currentCol+offset]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+offset][currentCol+offset]);
+                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(false);
+                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = false;
+                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
+                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
                     }
-                    System.out.println("updating " + canvas.getSquares()[currentRow+offset][currentCol+offset] + " when current char is " + currentChar);
 
                     currentCol++;
                 } else {
@@ -285,6 +281,20 @@ public class GUI {
 
 
     }
+    public static int[] calcOffSet(int x, int y)
+    {
+        int[] arr = new int[2];
+        if(numXSq-x<numXSq*.35 || numYSq-y<numYSq*.35) {
+            arr[0] = 0;
+            arr[1] = 1;
+        }
+        else {
+            arr[0] = (int) (((numXSq-x) / 4) + ((numXSq-x)* .15));
+            arr[1] =  (int) (((numYSq-y) / 4) + ((numYSq-y) * .15));
+        }
+        return arr;
+
+    }
     public static JMenuBar buildJMenuBar(Timer timer, boolean timerActive)
     {
         final boolean isActive = timerActive;
@@ -314,7 +324,7 @@ public class GUI {
                     timer.stop();
                     canvas.repaint();
                     canvas.setFocusable(true);
-                    parseRLEFile(selected,0);
+                    parseRLEFile(selected);
                 }
            }
 
@@ -488,9 +498,8 @@ public class GUI {
         timerActive = x;
     }
     public static void main(String[] args) {
-        GUI gui = new GUI(600   ,600,1200,1200,60);
-        gui.parseRLEFile(new File("unique-high-period.rle"),100);
-        //TODO:implement sparse matrix
+        GUI gui = new GUI(10   ,10,1200,1200,40);
+        //TODO:implement sparse matrix (start by making numNeighbors (in life class) only have nodes with neighbors)
     }
 
 }
