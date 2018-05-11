@@ -5,10 +5,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Canvas extends JPanel {
 
@@ -20,15 +17,16 @@ public class Canvas extends JPanel {
     int xInc;
     int yInc;
     Life life;
+    Life previousLife;
     ArrayList<Square> liveCells = new ArrayList<>();
     ArrayList<Square> justChanged = new ArrayList<>();
-    Set<Square> changed;
+    HashMap<Square,Boolean> changed;
     BufferedImage image;
 
     public Canvas(int w, int h, int numXSq, int numYSq) {
         this.w = w;
         this.h = h;
-        changed = new HashSet<>();
+        changed = new HashMap<>();
         image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         squares = new Square[numYSq][numXSq];
         this.xNum = numXSq;
@@ -62,13 +60,20 @@ public class Canvas extends JPanel {
         return life;
     }
 
-    public Set<Square> getChanged() {
+    public HashMap<Square,Boolean> getChanged() {
         return changed;
     }
-
+    public int getxNum()
+    {
+        return xNum;
+    }
+    public int getyNum()
+    {
+        return yNum;
+    }
     public void updatePixelsOfSquare(Square s) {
         //always black in first/last row and column
-        boolean status = life.getStatArr()[s.getArrayY()][s.getArrayX()];
+        boolean status = s.isFilled();
         int firstColumn = s.getX();
         int firstRow = s.getY();
         int lastColumn = firstColumn + s.getW() - 1;
@@ -100,12 +105,12 @@ public class Canvas extends JPanel {
         }
     }
 
-    public Set<Square> calcNewPositions(Life life) {
+    public HashMap<Square,Boolean> calcNewPositions(Life life) {
         changed = life.doCycle(1);
         boolean[][] board = life.getStatArr();
-        for (Square s : changed) {
+        for (Square s : changed.keySet()) {
 
-            if (board[s.getArrayY()][s.getArrayX()])
+            if (changed.get(s))
                 s.setFilled(true);
             else
                 s.setFilled(false);
@@ -116,13 +121,16 @@ public class Canvas extends JPanel {
     }
 
     public void reset() {
-        for (int r = 0; r < squares[0].length; r++) {
-            for (int c = 0; c < squares.length; c++) {
-                squares[r][c].setFilled(false);
+        life.reset();
+        this.squares = life.getBoard();
+        for(int r = 0;r<yNum;r++)
+        {
+            for(int c =0 ;c<xNum;c++)
+            {
                 updatePixelsOfSquare(squares[r][c]);
             }
         }
-        liveCells.clear();
+        changed.clear();
     }
 
     public Square[][] getSquares() {
@@ -132,7 +140,22 @@ public class Canvas extends JPanel {
     public static void main(String[] args) {
 
     }
-
+    public int getXInc()
+    {
+        return xInc;
+    }
+    public int getYInc()
+    {
+        return yInc;
+    }
+    public int getW()
+    {
+        return w;
+    }
+    public int getH()
+    {
+        return h;
+    }
     public void addListeners(Canvas GUI) {
         GUI.addMouseListener(new MouseListener() {
             @Override
@@ -153,7 +176,7 @@ public class Canvas extends JPanel {
                 if (!square.isClickedOn()) {
                     System.out.println("in here");
                     square.toggleFilled();
-                    changed.add(square);
+                    changed.put(square,square.isFilled());
                     square.setClickedOn(true);
                     life.getStatArr()[ySquare][xSquare] = square.isFilled();
                     updatePixelsOfSquare(square);
@@ -201,24 +224,23 @@ public class Canvas extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         double start = System.currentTimeMillis();
-        ArrayList<Square> actual = new ArrayList<>(changed);
+        ArrayList<Square> actual = new ArrayList<>(changed.keySet());
 
         for (int i = 0; i < changed.size(); i++) {
             Square s = actual.get(i);
-            if (s.isFilled()) {
+            if (changed.get(s)) {
                 {
-                    life.animateCell(life.getPoint(s.getArrayX(), s.getArrayY()));
-                    s.setFilled(true);
+                    life.animateCell(s);
                 }
             } else {
-                s.setFilled(false);
-                life.killCell(life.getPoint(s.getArrayX(), s.getArrayY()));
+                life.killCell(s);
             }
             squares[s.getArrayY()][s.getArrayX()].setClickedOn(false);
         }
         System.out.println("loop time: " + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
         g.drawImage(image, 0, 0, null);
+
         System.out.println("draw time: " + (System.currentTimeMillis() - start));
 
     }

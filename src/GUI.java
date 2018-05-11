@@ -14,6 +14,7 @@ public class GUI {
     static Life l;
     static int numXSq;
     static int numYSq;
+    static String startingDirectory = "/Users/tmoyer18/Dropbox/Data structures/Game of Life/Patterns";
     public GUI(int numXSq,int numYSq, int w, int h, int fps) {
         this.numXSq = numXSq;
         this.numYSq = numYSq;
@@ -56,6 +57,7 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 c.calcNewPositions(c.getLife());
                 c.repaint();
+                canvas.setFocusable(true);
             }
         });
         JButton b = new JButton("Start/Stop");
@@ -93,15 +95,47 @@ public class GUI {
 
             }
         });
+        frame.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
 
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == 69)
+                {
+                    System.out.println("goes in here dawg");
+                    canvas.calcNewPositions(l);
+                    canvas.repaint();
+                    canvas.setFocusable(true);
+                }
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
         JMenuBar bar = buildJMenuBar(timer,timerActive);
         frame.setBounds(40, 80, w + 1, h + 1);
         frame.add(c, BorderLayout.CENTER);
         frame.add(b, BorderLayout.PAGE_END);
         frame.add(bar, BorderLayout.BEFORE_FIRST_LINE);
     }
-    public void parseLife6File(File f) {
+    public void setLife(Life l)
+    {
+        this.l = l;
+    }
+    public static void reset()
+    {
         canvas.reset();
+        canvas.setFocusable(true);
+        canvas.repaint();
+    }
+    public void parseLife6File(File f) {
+        reset();
         Scanner input = null;
         String currentLine = "";
         try {
@@ -120,10 +154,11 @@ public class GUI {
         }
         canvas.repaint();
     }
-    public static void parseRLEFile(File f)
+
+    public static void decompressRLE(File f)
     {
-        //fix this shit
-        canvas.reset();
+        reset();
+                canvas.setFocusable(true);;
         Scanner input = null;
         String currentLine = "";
         try
@@ -147,81 +182,88 @@ public class GUI {
         int[] offsets = calcOffSet(x,y);
         int xOffSet = offsets[0];
         int yOffSet = offsets[1];
+        String result = "";
         currentLine = input.nextLine(); //this is where the pattern starts
         while(input.hasNextLine())
             currentLine+=input.nextLine();
+        System.out.println("currentLine: " + currentLine);
+        String numbers = "";
         char previousChar = ' ';
-        String recentNum = "";
-        int currentCol = 0;
-        int currentRow = 0;
         for(int i = 0;i<currentLine.length();i++) {
             char currentChar = currentLine.charAt(i);
-            if (currentChar == '!')
-                return;
-            else {
-                if (currentChar == '$') {
-
-                    if(Character.isDigit(previousChar))
-                        for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
-                            currentRow++;
-                            for (int newCol = 0; newCol < x; newCol++) {
-                                canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet].setFilled(false);
-                                canvas.getLife().getStatArr()[currentRow + yOffSet][newCol + xOffSet] = false;
-                                canvas.getChanged().add(canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet]);
-                                canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow + yOffSet][newCol + xOffSet]);
-                            }
-
-                        }
-                    else
-                    {
-                        currentRow++;
-                    }
-                    currentCol = 0;
+            if (Character.isDigit(previousChar) && !Character.isDigit(currentChar) && !numbers.equals("")) {
+                for (int k = 0; k < Integer.parseInt(numbers); k++) {
+                    result += currentChar;
                 }
-                if(Character.isDigit(currentChar))
-                {
-                    if(Character.isDigit(previousChar))
-                    {
-                        recentNum += currentChar;
-                    }
-                    else
-                        recentNum = "" + currentChar;
-                }
-                else if (Character.isDigit(previousChar) && Character.isAlphabetic(currentChar)) {
-                    boolean status = false;
-                    if (currentChar == 'o')
-                        status = true;
-                    for (int counter = 0; counter < Integer.parseInt(recentNum); counter++) {
-                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(status);
-                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = status;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
-                        currentCol++;
-                    }
-                } else if (((Character.isAlphabetic(previousChar) || previousChar == '$') && Character.isAlphabetic(currentChar)) || previousChar == ' ') {
-                    if (currentChar == 'o') {
-                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(true);
-                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = true;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
+                numbers = "";
 
-                    } else {
-                        canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet].setFilled(false);
-                        canvas.getLife().getStatArr()[currentRow+yOffSet][currentCol+xOffSet] = false;
-                        canvas.getChanged().add(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
-                        canvas.updatePixelsOfSquare(canvas.getSquares()[currentRow+yOffSet][currentCol+xOffSet]);
-                    }
-
-                    currentCol++;
-                } else {
-                    System.out.println("you did something wrong when current char is " + currentChar + " previousChar: " + previousChar);
-                }
+            } else if (Character.isDigit(currentChar)) {
+                numbers += currentChar;
+            } else
+            {
+                result+=currentChar;
             }
             previousChar = currentChar;
+
         }
+        parseDecompressed(result,offsets);
 
     }
 
+    public static void parseDecompressed(String rle,int[] offset)
+    {
+        int xOffset = offset[0];
+        int yOffset = offset[1];
+        int currentRow = yOffset;
+        int currentCol = xOffset;
+        System.out.println("xOffset: " + xOffset + " yOffset: " + yOffset);
+        System.out.println("RLE: " + rle);
+        for(int i = 0;i<rle.length();i++)
+        {
+            if(rle.charAt(i) == '$')
+            {
+                currentRow++;
+                currentCol = xOffset ;
+                System.out.println("New line");
+            }
+            else if(rle.charAt(i) == '!')
+                return;
+            else
+            {
+                if(rle.charAt(i) == 'o')
+                {
+                    if((currentCol)>numXSq || (currentCol)<canvas.getSquares()[0][0].getArrayX() || (currentRow)>numYSq || (currentRow)<canvas.getSquares()[0][0].getArrayY())
+                    {
+                        canvas.getLife().getExtraneousAlive().add(new Square(((currentCol)*canvas.getXInc()),(currentRow)*canvas.getYInc(),(currentCol),(currentRow),canvas.getXInc(),canvas.getYInc(),true,canvas.getSquares()));
+                    }
+                    else
+                    {
+                        canvas.getLife().getBoard()[(currentRow)][(currentCol)].setFilled(true);
+                        canvas.getChanged().put( canvas.getLife().getBoard()[(currentRow)][(currentCol)], canvas.getLife().getBoard()[(currentRow)][(currentCol)].isFilled());
+
+                    }
+                    canvas.updatePixelsOfSquare(canvas.getSquares()[(currentRow)][(currentCol)]);
+                }
+                else if(rle.charAt(i) == 'b')
+                {
+                    if(!((currentCol)>numXSq || (currentCol)<canvas.getSquares()[0][0].getArrayX() || (currentRow)>numYSq || (currentRow)<canvas.getSquares()[0][0].getArrayY()))
+                    {
+                        canvas.getSquares()[(currentRow)][(currentCol)].setFilled(false);
+                        canvas.getChanged().put( canvas.getLife().getBoard()[(currentRow)][(currentCol)], canvas.getLife().getBoard()[(currentRow)][(currentCol)].isFilled());
+                    }
+                }
+                else
+                {
+                    System.out.println("you blow at parsing");
+                }
+                System.out.println("put " + canvas.getLife().getBoard()[(currentRow)][(currentCol)] + " as " + canvas.getLife().getBoard()[(currentRow)][(currentCol)].isFilled());
+                currentCol++;
+            }
+
+
+        }
+        canvas.repaint();
+    }
     public static void saveFile(String name)
     {
         PrintWriter writer = null;
@@ -314,17 +356,21 @@ public class GUI {
 
            @Override
            public void mousePressed(MouseEvent e) {
-                JFileChooser fileChooser = new JFileChooser(new File("/Users/tmoyer18/Dropbox/Data structures/Game of Life/Patterns"));
+                System.out.println("You clicked on open");
+                JFileChooser fileChooser = new JFileChooser(new File(startingDirectory));
                 int result = fileChooser.showOpenDialog(frame);
                 if(result == JFileChooser.APPROVE_OPTION)
                 {
+                    startingDirectory = fileChooser.getCurrentDirectory().getAbsolutePath();
                     File selected = fileChooser.getSelectedFile();
                     l.reset();
-                    canvas.reset();
+                    reset();
+                    canvas.setFocusable(true);;
                     timer.stop();
                     canvas.repaint();
+                    decompressRLE(selected);
+                    //canvas.getLife().printImportantStuff();
                     canvas.setFocusable(true);
-                    parseRLEFile(selected);
                 }
            }
 
@@ -351,6 +397,7 @@ public class GUI {
 
             @Override
             public void mousePressed(MouseEvent e) {
+                System.out.println("You clicked on save");
                 saveFile("newFile");
                 canvas.setFocusable(true);
             }
@@ -378,6 +425,8 @@ public class GUI {
 
             @Override
             public void mousePressed(MouseEvent e) {
+                System.out.println("You clicked on step");
+                //canvas.getLife().printImportantStuff();
                 canvas.calcNewPositions(l);
                 canvas.repaint();
                 canvas.setFocusable(true);
@@ -406,10 +455,9 @@ public class GUI {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                l.reset();
-                canvas.reset();
+                System.out.println("You clicked on reset");
                 timer.stop();
-                canvas.repaint();
+                reset();
                 canvas.setFocusable(true);
             }
 
@@ -436,6 +484,7 @@ public class GUI {
 
             @Override
             public void mousePressed(MouseEvent e) {
+                System.out.println("You clicked on stop");
                 timer.stop();
                 setTimerActive(false);
             }
@@ -463,9 +512,9 @@ public class GUI {
 
             @Override
             public void mousePressed(MouseEvent e) {
-
-                    timer.start();
-                    setTimerActive(false);
+                System.out.println("You clicked on start");
+                timer.start();
+                setTimerActive(false);
 
             }
 
@@ -498,8 +547,8 @@ public class GUI {
         timerActive = x;
     }
     public static void main(String[] args) {
-        GUI gui = new GUI(10   ,10,1200,1200,40);
-        //TODO:implement sparse matrix (start by making numNeighbors (in life class) only have nodes with neighbors)
+        GUI gui = new GUI(200   ,200,1200,1200,40);
+        //TODO:fix  parser
     }
 
 }

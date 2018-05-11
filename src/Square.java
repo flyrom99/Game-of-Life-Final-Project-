@@ -98,7 +98,6 @@ public class Square {
     }
     public ArrayList<Square> getNeighbors(Square[][] board)
     {
-        ArrayList<Square> points = new ArrayList<>();
         if(!calculatedNeighbors) {
             if ((arrayY - 1 >= 0 && arrayX - 1 >= 0) && (arrayY - 1 < board.length && arrayX - 1 < board[0].length))
                 neighbors.add(board[arrayY - 1][arrayX - 1]);
@@ -150,6 +149,16 @@ public class Square {
         }
         return sum;
     }
+    public int getNumAliveNeighbors()
+    {
+        int sum = 0;
+        for(Square p : neighbors)
+        {
+            if(p.isFilled())
+                sum++;
+        }
+        return sum;
+    }
     public void setNumNeighbors(int i)
     {
         this.numNeighbors = i;
@@ -180,7 +189,7 @@ public class Square {
 
     public String toString()
     {
-        return "(" + arrayX + ", " + arrayY + ") s: " + filled;
+        return "(" + arrayX + ", " + arrayY + ") s: " + filled + " " + getNumAliveNeighbors();
     }
 
 
