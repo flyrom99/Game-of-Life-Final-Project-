@@ -1,66 +1,59 @@
 import java.util.*;
 
 public class Life {
-    HashMap<Square,Integer> numNeighbors = new HashMap<>();
-    HashSet<Square> alive = new HashSet<>();
-    HashSet<Square> extraneousAlive = new HashSet<>();
+    TreeMap<Square,Integer> numNeighbors = new TreeMap<>();
+    TreeSet<Square> allCells;
+    TreeSet<Square> alive = new TreeSet<>();
+    TreeSet<Square> extraneousAlive = new TreeSet<>();
+    TreeSet<Square> outOfBounds = new TreeSet<>();
     Square[][] board;
     boolean[][] statArr;
     int xTranspose = 0;
     int yTranspose = 0;
-    public Life (int x, int y)
-    {
-        board = new Square[y][x];
-        statArr = new boolean[y][x];
-        for(int r = 0;r<board.length;r++)
-        {
-            for(int c = 0;c<board[0].length;c++)
-            {
-                board[r][c] = new Square(c,r,0,0,50,50,false,board);
-                statArr[r][c] = false;
-            }
-        }
-    }
-    public HashSet<Square> getExtraneousAlive()
+    public TreeSet<Square> getExtraneousAlive()
     {
         return extraneousAlive;
     }
-    public Life(Square[][] board)
+    public Life(Square[][] board,TreeSet<Square> allAlive)
     {
+        this.allCells = allAlive;
         this.board = board;
         statArr = new boolean[board.length][board[0].length];
-        //System.out.println("bW: " + board[0].length + " bH " + board.length + "  sW: " + statArr[0].length + " sH: " + statArr.length);
     }
-
-    public void printImportantStuff(HashMap<Square, Boolean> changed)
+    public void setBoard(Square[][] board)
     {
-        System.out.println("alive: " + alive);
-        System.out.println("numNeighbors: " + numNeighbors);
-        System.out.println("changed: " + changed);
+        this.board = board;
+    }
+    public void printImportantStuff(TreeMap<Square, Boolean> changed)
+    {
         printBoard(board);
-        System.out.println(getPoint(8,4).getNumAliveNeighbors(alive));
     }
     public void printImportantStuff()
     {
-        System.out.println("alive: " + alive);
-        System.out.println("numNeighbors: " + numNeighbors);
         printBoard(board);
-        System.out.println(getPoint(8,4).getNumAliveNeighbors(alive));
     }
-    public void reset()
+    public void setOutOfBounds(TreeSet<Square> s)
+    {
+        this.outOfBounds = s;
+    }
+    public void reset(int xInc, int yInc)
     {
         statArr = new boolean[board.length][board[0].length];
+        board = new Square[board.length][board[0].length];
         alive.clear();
+        outOfBounds.clear();
         numNeighbors.clear();
         for(int r = 0;r<board.length;r++)
         {
             for(int col = 0;col<board[0].length;col++)
             {
-                Square s = board[r][col];
-                board[r][col] = new Square(s.getX(),s.getY(),s.getArrayX(),s.getArrayY(),s.getW(),s.getH(),false,board);
+                board[r][col] = new Square(col*xInc,r*yInc,col,r,xInc,yInc,false,board,outOfBounds);
+
             }
         }
     }
+
+
     public boolean[][] getStatArr()
     {
         return this.statArr;
@@ -71,24 +64,28 @@ public class Life {
         return board[y][x];
     }
     public void animateCell(Square p) {
-
         //statArr[p.getArrayY()][p.getArrayX()] = true;
         alive.add(p);
         p.setFilled(true);
-        //System.out.println("neighbors of " + p + " are " + p.getNeighbors(board));
         for (Square n : p.getNeighbors(board)) {
-
+            if(n==null)
+            {
+                p.setCalculatedNeighbors(false);
+                animateCell(p);
+            }
+            else {
                 if (numNeighbors.keySet().contains(n)) {
                     numNeighbors.remove(n);
                 }
                 numNeighbors.put(n, n.getNumAliveNeighbors(alive));
+            }
         }
         if (numNeighbors.keySet().contains(p))
             numNeighbors.remove(p);
         numNeighbors.put(p, p.getNumAliveNeighbors(alive));
     }
 
-    public HashSet<Square> getAlive()
+    public TreeSet<Square> getAlive()
     {
         return alive;
     }
@@ -118,9 +115,9 @@ public class Life {
             for(int c = 0;c<arr.length;c++)
             {
                 if(board[r][c].isFilled())
-                    arr[r][c] = board[r][c].getNumAliveNeighbors(alive) + ")";
+                    arr[r][c] = ("*(" + board[r][c].getArrayX() + ", " + board[r][c].getArrayY() + ")*");
                 else
-                    arr[r][c] = "" + board[r][c].getNumAliveNeighbors(alive);
+                    arr[r][c] = " (" + board[r][c].getArrayX() + ", " + board[r][c].getArrayY() + ") ";
             }
         }
 
@@ -136,83 +133,119 @@ public class Life {
 
 
     }
+
+    public void printNeighborBoard(Square[][] board)
+    {
+
+        String[][]arr = new String[board.length][board[0].length];
+        for(int r = 0;r<arr[0].length;r++)
+        {
+            for(int c = 0;c<arr.length;c++)
+            {
+                if(board[r][c].isFilled())
+                    arr[r][c] = ("(" + board[r][c].getNumAliveNeighbors(alive) + ")");
+                else
+                    arr[r][c] = ""+ board[r][c].getNumAliveNeighbors(alive);
+            }
+        }
+
+        for(int r = 0;r<arr[0].length;r++)
+        {
+            for(int c = 0;c<arr.length;c++)
+            {
+
+                System.out.print(arr[r][c] + calcSpaces(arr[r][c]));
+            }
+            System.out.println();
+        }
+    }
     public String calcSpaces(String s)
     {
         String result = "";
-        int n = 4-s.length();
+        int n = 8-s.length();
         for(int i = 0;i<n;i++)
         {
             result+=" ";
         }
         return result;
     }
-    public void printStatArr(boolean[][] arr)
+    public void printGraphicsArr(Square[][] board)
     {
+        String[][] arr = new String[board.length][board[0].length];
+        for(int r = 0;r<board[0].length;r++)
+        {
+            for(int c = 0;c<board.length;c++)
+            {
+                int x = board[r][c].getX();
+                int y = board[r][c].getY();
+                if(board[r][c].isFilled())
+                    arr[r][c] = ("*(" + x + ", " + y + ")*");
+                else
+                arr[r][c] = " (" + x + ", " + y + ") ";
+            }
+        }
+
         for(int r = 0;r<arr[0].length;r++)
         {
             for(int c = 0;c<arr.length;c++)
             {
-                boolean s = arr[r][c];
-                if(s == true)
-                    System.out.print( "T ");
-                else
-                    System.out.print("f ");
-            }
 
+                System.out.print(arr[r][c] + calcSpaces(arr[r][c]));
+            }
             System.out.println();
         }
     }
-    public Square[][] translateBoard(int xShift, int yShift)
-    {
-        Square[][] newBoard = new Square[board.length][board[0].length];
-        //positive xShift means go right, negative xShift goes left
-        // positive yShift means go up, negative yShift means go down
 
+    public void updateAllNumNeighborValues()
+    {
+        ArrayList<Square> updateThese = new ArrayList<>(numNeighbors.keySet());
+        for(Square s: updateThese)
+        {
+            numNeighbors.put(s,s.getNumAliveNeighbors());
+        }
     }
     public Square[][] getBoard()
     {
         return board;
     }
-    public HashMap<Square,Boolean> doCycle(int i)
+    public TreeMap<Square,Boolean> doCycle(int i)
     {
         //returns the Squares that changed
         double start = System.currentTimeMillis();
-        HashMap<Square,Integer> results = new HashMap<>();
-        HashMap<Square,Boolean> changed = new HashMap<>();
+        TreeMap<Square,Integer> results = new TreeMap<>();
+        TreeMap<Square,Boolean> changed = new TreeMap<>();
         //-1 == kill  1 == live
-        //System.out.println("numNeighbors before cycle: " + numNeighbors);
+        /*
+        System.out.println("before");
+
+        printNeighborBoard(board);
+        printBoard(board);
+        System.out.println("numNeighbors before: " + numNeighbors);
+        */
         for(Square p: numNeighbors.keySet()) {
-            int neighbors = p.getNumAliveNeighbors(alive);
-            if (p.getArrayX() >= 0 && p.getArrayY() >= 0 && p.getArrayX() < board[0].length && p.getArrayY() < board.length) {
+            int neighbors = p.getNumAliveNeighbors();
                 if (p.isFilled() && alive.contains(p)) {
                     if (neighbors == 3 || neighbors == 2) {
-                        results.put(p, 0); //alive cell stays alive
-                       // System.out.println("keeping " + p + " alive");
+                            results.put(p, 0); //alive cell stays alive
                     } else {
                         results.put(p, -1);
-                        //System.out.println("killing " + p);
                         changed.put(p,false);
                     }
                 } else //is dead rn
                 {
                     if (neighbors == 3) {
-                        results.put(p, 1);
-                        //System.out.println("animating " + p);
-                        changed.put(p,true);
+
+                            results.put(p, 1);
+                            changed.put(p, true);
+
                     } else {
                         results.put(p, 0);
-                        //System.out.println("keeping " + p + " dead");
                     }
                 }
             }
 
-        }
         for(Square p:results.keySet())
         {
-            if(p.getNumAliveNeighbors(alive) == 0)
-            {
-
-            }
             if(results.get(p) == 1)
             {
                 animateCell(p);
@@ -227,9 +260,19 @@ public class Life {
             {
             }
         }
-        System.out.println("cycle time: " + (System.currentTimeMillis() - start));
-        //System.out.println("after");
-        //printImportantStuff(changed);
+        /*
+        System.out.println("after");
+        System.out.println();
+        printNeighborBoard(board);
+        System.out.println();
+        printGraphicsArr(board);
+        System.out.println("numNeighbors after: " + numNeighbors);
+        System.out.println("cycle time: " + (System.currentTimeMillis()-start));
+        */
+        //printNeighborBoard(board);
+//        System.out.println("outOfBounds: " + outOfBounds);
+  //      System.out.println("alive after: " + alive);
+
         return changed;
     }
 
