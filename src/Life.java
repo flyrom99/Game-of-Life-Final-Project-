@@ -260,18 +260,6 @@ public class Life {
             {
             }
         }
-        /*
-        System.out.println("after");
-        System.out.println();
-        printNeighborBoard(board);
-        System.out.println();
-        printGraphicsArr(board);
-        System.out.println("numNeighbors after: " + numNeighbors);
-        System.out.println("cycle time: " + (System.currentTimeMillis()-start));
-        */
-        //printNeighborBoard(board);
-//        System.out.println("outOfBounds: " + outOfBounds);
-  //      System.out.println("alive after: " + alive);
 
         return changed;
     }

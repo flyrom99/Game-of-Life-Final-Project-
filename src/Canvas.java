@@ -18,8 +18,6 @@ public class Canvas extends JPanel {
     int yInc;
     Life life;
     TreeSet<Square> allCells = new TreeSet<>();
-    Life previousLife;
-    ArrayList<Square> justChanged = new ArrayList<>();
     TreeMap<Square, Boolean> changed;
     BufferedImage image;
 
@@ -305,10 +303,8 @@ public class Canvas extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         double start = System.currentTimeMillis();
-        //System.out.println("loop time: " + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
         g.drawImage(image, 0, 0, null);
-        //System.out.println("draw time: " + (System.currentTimeMillis() - start));
         setFocusable(true);
         requestFocusInWindow();
 

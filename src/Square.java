@@ -13,10 +13,8 @@ public class Square implements Comparable {
     boolean clickedOn;
     int numNeighbors;
     boolean calculatedNeighbors;
-    boolean recentlyShifted = false;
     Square[][] board;
     Square[] neighbors = new Square[8];
-    ArrayList<Square> oNeighbors = new ArrayList<>();
     TreeSet<Square> outOfBounds;
     Square N;
     Square NW;
@@ -39,14 +37,6 @@ public class Square implements Comparable {
         this.clickedOn = false;
         this.calculatedNeighbors = false;
         this.board = board;
-    }
-    public boolean isRecentlyShifted()
-    {
-        return this.recentlyShifted;
-    }
-    public void setRecentlyShifted(boolean s)
-    {
-        this.recentlyShifted = s;
     }
     public int getArrayX() {
         return arrayX;

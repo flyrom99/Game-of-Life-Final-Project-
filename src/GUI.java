@@ -102,6 +102,7 @@ public class GUI {
                     timerActive = true;
                 }
                 c.setFocusable(true);
+
             }
 
             @Override
@@ -147,6 +148,8 @@ public class GUI {
                 else if(e.getKeyCode() == 38) //up arrow
                 {
                     System.out.println("you pressed up arrow");
+                    //canvas.translateBoard(0,(canvas.getSquares()[0].length/12));
+                    //canvas.translateBoard(0,1);
                     canvas.newTranslate(0,canvas.getyNum()/8,canvas.getSquares());
                     canvas.repaint();
                     canvas.setFocusable(true);
@@ -253,6 +256,7 @@ public class GUI {
                 }
                 else if(e.getKeyCode() == 38) //up arrow
                 {
+                    System.out.println("you pressed up arrow");
                     canvas.newTranslate(0,4,canvas.getSquares());
                     canvas.repaint();
                     canvas.setFocusable(true);
@@ -296,7 +300,6 @@ public class GUI {
                         timer.stop();
                         canvas.repaint();
                         decompressRLE(selected);
-                        //canvas.getLife().printImportantStuff();
                         canvas.setFocusable(true);
                         canvas.requestFocusInWindow();
                     }
@@ -429,15 +432,12 @@ public class GUI {
         int yOffset = offset[1];
         int currentRow = yOffset;
         int currentCol = xOffset;
-        //System.out.println("xOffset: " + xOffset + " yOffset: " + yOffset);
-        //System.out.println("RLE: " + rle);
         for(int i = 0;i<rle.length();i++)
         {
             if(rle.charAt(i) == '$')
             {
                 currentRow++;
                 currentCol = xOffset ;
-                //System.out.println("New line");
             }
             else if(rle.charAt(i) == '!')
                 break;
@@ -492,70 +492,11 @@ public class GUI {
                     canvas.getLife().getAlive().add(s);
             }
         }
-        //canvas.newTranslate(5,5,canvas.getSquares());
         canvas.setFocusable(true);
         canvas.requestFocusInWindow();
         canvas.repaint();
     }
-    public static void saveFile(String name)
-    {
-        PrintWriter writer = null;
-        File file = new File(name + ".rle");
-        try{
-            writer = new PrintWriter(file);
-        }
-        catch (IOException ex)
-        {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-        writer.println("x = " + numXSq + ", y = " + numYSq + ", rule = B3/S23");
-        Square[][] squares = canvas.getSquares();
-        for(int r = 0;r<squares.length;r++)
-        {
-            int runningCount = 0;
-            char runningChar = ' ';
-            char currentChar = ' ';
-            String appendThis = "";
-            int lineLength = 0;
-            for(int c = 0;c<squares[0].length;c++)
-            {
-                System.out.println("running count: " + runningCount);
-                System.out.println("rChar: " + runningChar + " cChar: " + currentChar);
-                if(l.getStatArr()[r][c])
-                    currentChar = 'o';
-                else
-                    currentChar = 'b';
-                if(runningCount == 0) {
-                    runningChar = currentChar;
-                }
-                if(currentChar == runningChar)
-                    runningCount++;
-                else
-                {
-                    if(lineLength>=70)
-                        writer.print("\n");
-                    else
-                    {
-                    if(runningCount == 1)
-                        writer.print(runningChar);
-                    else {
-                        writer.print(runningCount + runningChar);
 
-                    }
-                    lineLength++;
-                    }
-                    runningChar = currentChar;
-                    runningCount = 1;
-                }
-            }
-            writer.print("$");
-        }
-        writer.print("!");
-        writer.close();
-
-
-    }
     public static int[] calcOffSet(int x, int y)
     {
         int[] arr = new int[2];
@@ -580,7 +521,6 @@ public class GUI {
         JMenuItem start = new JMenuItem("Start");
         JMenuItem stop = new JMenuItem("Stop");
         JMenuItem step = new JMenuItem("Single Step");
-        JMenuItem save = new JMenuItem("Save");
        open.addMouseListener(new MouseListener() {
            @Override
            public void mouseClicked(MouseEvent e) {
@@ -624,35 +564,6 @@ public class GUI {
 
            }
        });
-        save.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                System.out.println("You clicked on save");
-                saveFile("newFile");
-                canvas.setFocusable(true);
-                canvas.requestFocusInWindow();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
-            }
-        });
         step.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -776,7 +687,6 @@ public class GUI {
         });
         menu.add(open);
         menu.add(reset);
-        menu.add(save);
         menu.add(step);
         menu.add(start);
         menu.add(stop);
@@ -788,7 +698,7 @@ public class GUI {
         timerActive = x;
     }
     public static void main(String[] args) {
-        GUI gui = new GUI(800   ,800,1600,1600,100);
+        GUI gui = new GUI(400   ,400,800,800,100);
         //TODO:
     }
 
