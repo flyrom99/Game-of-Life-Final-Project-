@@ -1,3 +1,3 @@
 # Game-of-Life-Final-Project-
 Conway's Game of Life in Java
-Final project for Data Structures at US 2018
+Reimplementation of Conway's Game of Life on a fixed size board.
